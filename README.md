@@ -57,11 +57,27 @@ if __name__ == '__main__':
     test_load()
 ```
 
+### 自动补全地址
+```python
+from pyunit_address import Address
+
+def test_supplement_address():
+    address = Address(is_max_address=True)
+    asu = address.supplement_address('我家在遵义') # 贵州省-遵义市
+    print(asu)
+
+if __name__ == '__main__':
+    test_supplement_address()
+
+```
+
 # TODO
 - [x] 自动寻找最长地址长度
 - [x] 全国五级地址新词库
 - [x] 支持自定义地址词库
 - [x] 不支持非规则地址
+- [x] 支持地址自动补全
+
 
 ***
 [1]: https://blog.jtyoui.com
