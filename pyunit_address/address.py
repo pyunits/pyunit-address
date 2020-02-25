@@ -32,6 +32,7 @@ class Address:
 
         self.is_max_address = is_max_address
         self._auto_length()
+        self.Tree = dict_create_tree(self.sequential_address)
 
     def _auto_length(self):
         """自动寻找地址的最长度"""
@@ -202,12 +203,11 @@ class Address:
         :param address_name: 要补全的地址，比如：山西孝义
         :param is_max_address: 是否是最大补全地址，默认是否。
         """
-        tree = dict_create_tree(self.sequential_address)
         flag = self.is_max_address
         self.is_max_address = False
         ls, finds_address = [], self.find_address(address_name)
         for address in finds_address:
-            for addr in tree.search_tree_value(address):
+            for addr in self.Tree.search_tree_value(address):
                 ls.append(addr)
         self.is_max_address = flag
         match = list(filter(self.satisfy_filter(finds_address), ls))
