@@ -203,21 +203,20 @@ class Address:
         :param address_name: 要补全的地址，比如：山西孝义
         :param is_max_address: 是否是最大补全地址，默认是否。
         """
+        obj = max if is_max_address else min
         flag = self.is_max_address
         self.is_max_address = False
         ls, finds_address = [], self.find_address(address_name)
-        for address in finds_address:
-            for addr in self.Tree.search_tree_value(address):
-                ls.append(addr)
+        ls = [addr for address in finds_address for addr in self.Tree.search_tree_value(address)]
         self.is_max_address = flag
         match = list(filter(self.satisfy_filter(finds_address), ls))
         if match:
-            if is_max_address:
-                return max(match, key=lambda x: len(x))
-            else:
-                return min(match, key=lambda x: len(x))
+            ls = obj(match, key=lambda x: len(x))
         elif ls:
-            return Counter(ls).most_common(1)[0][0]
+            temporary = []
+            for temp in finds_address:
+                temporary.append(obj(filter(lambda x: temp in x, ls), key=lambda x: len(x)))
+            ls = temporary
         return ls
 
     @staticmethod
