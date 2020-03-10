@@ -154,13 +154,20 @@ class Address:
             return value[1]
         return None
 
-    def find_address(self, data: str) -> list:
-        """查找地址"""
-        data = re.sub(r"[!#$%&'()*+,-./:：，。？！；‘’、《》;<=>?@[\]^_`{|}~\s]", '', data)
+    def find_address(self, data: str, is_max_address=None, ignore_special_characters=True) -> list:
+        """查找地址
+
+        :param data: 查找地址数据
+        :param is_max_address: 是否查找最长地址
+        :param ignore_special_characters: 是否去掉特殊字符
+        :return: 地址列表
+        """
+        is_max_address = self.is_max_address if is_max_address is None else is_max_address
+        if ignore_special_characters:
+            data = re.sub(r"[!#$%&'()*+,-./:：，。？！；‘’、《》;<=>?@[\]^_`{|}~\s]", '', data)
         i, ls, length = 0, [], len(data)
         while i + 1 < length:
             width = self.max_address if length - i > self.max_address else (length - i)  # 补差位数
-
             for j in range(2, width + 1):  # 精准匹配
                 n = data[i:i + j]
                 value = self._bisect_right(self.address_data, n, 0, self.length_all)
@@ -183,8 +190,7 @@ class Address:
                             break
                 else:
                     i += 1
-
-        if self.is_max_address:
+        if is_max_address:
             max_address = []
             match = re.sub('|'.join(ls), lambda x: '*' * len(x.group()), data)
             for addr in re.finditer(r'[*]+', match):
@@ -192,24 +198,26 @@ class Address:
             return max_address
         return ls
 
-    def supplement_address(self, address_name, is_max_address=False):
+    def supplement_address(self, address_name, is_max_address=False, is_order=False, is_remove_subset=True):
         """补全地址
 
         输入零碎的地址信息。补全地址，比如输入：山西孝义,补全为：山西省-吕梁市-文水县-孝义镇
 
-        当参数is_max_address=False时。默认补全最短地址。比如：山西孝义，补全为：山西省-吕梁市-文水县-孝义镇
-        当参数is_max_address=True。补全最长地址。比如：山西孝义，补全为：山西省-吕梁市-文水县-孝义镇-孝义村委会
+        当参数：is_max_address=False时。默认补全最短地址。比如：山西孝义，补全为：山西省-吕梁市-文水县-孝义镇
+        当参数：is_max_address=True。补全最长地址。比如：山西孝义，补全为：山西省-吕梁市-文水县-孝义镇-孝义村委会
+
+        当参数：is_order=False。补全的地址是无序的，比如：孝义山西，也能补全为：山西省-吕梁市-文水县-孝义镇
+        当参数：is_order=True。补全的地址是有序的，比如：孝义山西，则补全不出。无法在孝义下面找到关于山西的地址字眼。
 
         :param address_name: 要补全的地址，比如：山西孝义
         :param is_max_address: 是否是最大补全地址，默认是否。
+        :param is_order: 地址补全，是否遵守顺序。默认是：无序
+        :param is_remove_subset: 是否移除地址中含有的地址子集，比如：[山西省-吕梁市,山西省,吕梁市]-->[山西省-吕梁市]
         """
         obj = max if is_max_address else min
-        flag = self.is_max_address
-        self.is_max_address = False
-        ls, finds_address = [], self.find_address(address_name)
+        ls, finds_address = [], self.find_address(address_name, is_max_address=False)
         ls = [addr for address in finds_address for addr in self.Tree.search_tree_value(address)]
-        self.is_max_address = flag
-        match = list(filter(self.satisfy_filter(finds_address), ls))
+        match = list(filter(self.satisfy_filter(finds_address, is_order), ls))
         if match:
             ls = obj(match, key=lambda x: len(x))
         elif ls:
@@ -217,20 +225,49 @@ class Address:
             for temp in finds_address:
                 temporary.append(obj(filter(lambda x: temp in x, ls), key=lambda x: len(x)))
             ls = temporary
+        if is_remove_subset:
+            return self.remove_subset(ls)
         return ls
 
     @staticmethod
-    def satisfy_filter(finds_address):
+    def remove_subset(ls: list) -> list:
+        """去除列表中的子集
+
+        比如：['aa','a','ab'] --> ['aa','ab']
+
+        :param ls: 字符串列表
+        :return: 返回去重后的结果
+        """
+        ls = sorted(ls, key=lambda x: len(x), reverse=True)
+        total = []
+        for subset in ls:
+            if subset not in total:
+                flag = True
+                for word in total:
+                    if subset in word:
+                        flag = False
+                        break
+                if flag:
+                    total.append(subset)
+        return total
+
+    @staticmethod
+    def satisfy_filter(finds_address, is_order):
         """满足条件的过滤算法
 
         算法流程：满足每一个地址提取的实体
         """
 
         def _(x):
+            order = []
             for address in finds_address:
                 if address not in x:
                     return False
+                else:
+                    order.append(x.find(address))
             else:
+                if is_order:
+                    return True if order == list(sorted(order)) else False
                 return True
 
         return _

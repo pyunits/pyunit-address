@@ -40,9 +40,16 @@ def test_supplement_address():
     print(asu)
 
 
+def test_remove():
+    address = Address(is_max_address=True)
+    r = address.remove_subset(['a', 'a', 'ab'])
+    print(r)
+
+
 if __name__ == '__main__':
     # test()
     # test_add()
     # test_load()
     # test_delete()
     test_supplement_address()
+    # test_remove()
