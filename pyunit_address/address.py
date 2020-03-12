@@ -198,7 +198,7 @@ class Address:
             return max_address
         return ls
 
-    def supplement_address(self, address_name, is_max_address=False, is_order=False, is_remove_subset=True):
+    def supplement_address(self, address_name, is_max_address=False, is_order=False, is_remove_subset=True) -> list:
         """补全地址
 
         输入零碎的地址信息。补全地址，比如输入：山西孝义,补全为：山西省-吕梁市-文水县-孝义镇
@@ -220,6 +220,7 @@ class Address:
         match = list(filter(self.satisfy_filter(finds_address, is_order), ls))
         if match:
             ls = obj(match, key=lambda x: len(x))
+            return [ls]
         elif ls:
             temporary = []
             for temp in finds_address:

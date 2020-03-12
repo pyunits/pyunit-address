@@ -36,7 +36,7 @@ def test_delete():
 
 def test_supplement_address():
     address = Address(is_max_address=True)
-    asu = address.supplement_address('我家在遵义')
+    asu = address.supplement_address('我家在贵州贵阳观山湖')  # ['贵州省-贵阳市-观山湖区']
     print(asu)
 
 
