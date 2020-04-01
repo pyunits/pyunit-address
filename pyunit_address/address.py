@@ -70,14 +70,14 @@ class Address:
                 with open(words, encoding='UTF-8')as fp:
                     for word in fp:
                         self.length_all += 1
-                        self.ac.add_word(words, (self.length_all, word))
+                        self.ac.add_word(word, (self.length_all, word))
             else:
                 self.length_all += 1
                 self.ac.add_word(words, (self.length_all, words))
         elif isinstance(words, Iterable):
             for word in words:
                 self.length_all += 1
-                self.ac.add_word(words, (self.length_all, word))
+                self.ac.add_word(word, (self.length_all, word))
         else:
             raise ValueError('增加值错误')
         self.ac.make_automaton()
