@@ -6,14 +6,15 @@ try:
     from collections.abc import Iterable
 except ModuleNotFoundError:
     from collections import Iterable
-from .TreeAlgorithm import dict_create_tree
-from collections import Counter
+from .TreeAlgorithm import dict_create_tree, Singleton
+import ahocorasick
 import bz2
 import os
 import json
 import re
 
 
+@Singleton
 class Address:
 
     def __init__(self, is_max_address=False):
@@ -25,93 +26,61 @@ class Address:
         # 加载精准匹配的词库，共40万 、  顺序表
         self.address_data, self.sequential_address = self._unzip()
         self.length_all = len(self.address_data)
-
-        # 加载模糊匹配的词库
-        self.vague = [w.strip() for w in open(os.path.dirname(__file__) + os.sep + 'CAT.txt', encoding='UTF-8')]
-        self.length_vague = len(self.vague)
-
         self.is_max_address = is_max_address
-        self._auto_length()
         self.Tree = dict_create_tree(self.sequential_address)
+        self.ac = ahocorasick.Automaton()
+        for index, key in enumerate(self.address_data):
+            self.ac.add_word(key, (index, key))
+        self.ac.make_automaton()
 
-    def _auto_length(self):
-        """自动寻找地址的最长度"""
-        self.max_data = len(max(self.address_data, key=lambda x: len(x)))
-        self.max_vague = len(max(self.vague, key=lambda x: len(x)))
-        self.max_address = self.max_data if self.max_data >= self.max_vague else self.max_vague
-
-    def set_vague_text(self, text):
-        """重新加载模糊匹配的文本数据
-
-        数据格式1： ['地址1','地址2',....] 并且排序。默认是：sorted()
-
-        数据格式2： 词库的地址，文本默认格式是UTF-8
-        """
-        if isinstance(text, list):
-            self.vague = text
-        elif isinstance(text, str) and os.path.exists(text):
-            ls = set()
-            with open(text, encoding='UTF-8')as fp:
-                for f in fp:
-                    ls.add(f.strip())
-            self.vague = list(sorted(ls))
-        else:
-            raise TypeError('格式异常！')
-        self.length_vague = len(self.vague)
-        self._auto_length()
-
-    def delete_vague_text(self, words):
+    def delete_vague_text(self, words: [str, Iterable]):
         """删除默认词库
+
+        传入的参数可以是：一个词语、一个列表、一个元组、甚至是一个文件地址，文件地址里面是包含一列一个词语
 
         格式1：删除一个词，传入字符串
 
         格式2：删除一列词，传入列表
         """
         if isinstance(words, str):
-            word = words.strip()
-            if word in self.vague:
-                self.vague.remove(word)
-                self.length_vague -= 1
-
-            if word in self.address_data:
-                self.address_data.remove(word)
-                self.length_all -= 1
+            if os.path.exists(words):
+                with open(words, encoding='UTF-8')as fp:
+                    for word in fp:
+                        self.ac.remove_word(word)
+            else:
+                self.ac.remove_word(words)
         elif isinstance(words, Iterable):
             for word in words:
-                word = word.strip()
-                if word in self.vague:
-                    self.vague.remove(word)
-                if word in self.address_data:
-                    self.address_data.remove(word)
-            else:
-                self.length_vague = len(self.vague)
-                self.length_all = len(self.address_data)
+                self.ac.remove_word(word)
         else:
-            raise ValueError('增加值错误')
-        self._auto_length()
+            raise ValueError('删除值错误')
+        self.ac.make_automaton()
 
-    def add_vague_text(self, words):
+    def add_vague_text(self, words: [str, Iterable]):
         """增加地址词语
+
+        传入的参数可以是：一个词语、一个列表、一个元组、甚至是一个文件地址，文件地址里面是包含一列一个词语
 
         格式1： 只增加一个词
 
         格式2：增加一个列表
         """
-        if isinstance(words, str) and (words not in self.vague):
-            self.vague.append(words.strip())
-            self.vague = list(sorted(self.vague))
-            self.length_vague += 1
+        if isinstance(words, str):
+            if os.path.exists(words):
+                with open(words, encoding='UTF-8')as fp:
+                    for word in fp:
+                        self.length_all += 1
+                        self.ac.add_word(words, (self.length_all, word))
+            else:
+                self.length_all += 1
+                self.ac.add_word(words, (self.length_all, words))
         elif isinstance(words, Iterable):
             for word in words:
-                word = word.strip()
-                if word not in self.vague:
-                    self.vague.append(word)
-            else:
-                self.vague = list(sorted(self.vague))
-                self.length_vague = len(self.vague)
+                self.length_all += 1
+                self.ac.add_word(words, (self.length_all, word))
         else:
             raise ValueError('增加值错误')
-        self._auto_length()
+        self.ac.make_automaton()
 
     @staticmethod
     def _unzip() -> (list, dict):
@@ -120,41 +89,22 @@ class Address:
         bz = bz2.BZ2File(os.path.dirname(__file__) + os.sep + name + '.bz2')
         lines = bz.read().decode('utf-8')
         address = json.loads(lines[512:-1134], encoding='utf8')
-        ls = []
+        ls = set()
         for one_k, one_v in address.items():
-            ls.append(one_k)
+            ls.add(one_k)
             for two_k, two_v in one_v.items():
-                ls.append(two_k)
+                ls.add(two_k)
                 for three_k, three_v in two_v.items():
-                    ls.append(three_k)
+                    ls.add(three_k)
                     for four_k, four_v in three_v.items():
-                        ls.append(four_k)
+                        ls.add(four_k)
                         for five_k in four_v:
-                            ls.append(five_k)
-        return list(sorted(ls)), address
+                            ls.add(five_k)
+                # 加载模糊匹配的词库
+        ls.update([w.strip() for w in open(os.path.dirname(__file__) + os.sep + 'CAT.txt', encoding='UTF-8')])
+        return ls, address
 
-    @staticmethod
-    def _bisect_right(a, x, lo, hi):
-        """二分法算法"""
-        while lo < hi:
-            mid = (lo + hi) // 2
-            mid_value = a[mid]
-            if x < mid_value:
-                hi = mid
-            elif x == mid_value:
-                return lo, mid_value
-            else:
-                lo = mid + 1
-        return lo
-
-    def _vague(self, values):
-        """模糊匹配"""
-        value = self._bisect_right(self.vague, values, 0, self.length_vague)
-        if isinstance(value, tuple):
-            return value[1]
-        return None
-
-    def find_address(self, data: str, is_max_address=None, ignore_special_characters=True) -> list:
+    def find_address(self, data: str, is_max_address=True, ignore_special_characters=True) -> list:
         """查找地址
 
         :param data: 查找地址数据
@@ -162,34 +112,12 @@ class Address:
         :param ignore_special_characters: 是否去掉特殊字符
         :return: 地址列表
         """
-        is_max_address = self.is_max_address if is_max_address is None else is_max_address
         if ignore_special_characters:
             data = re.sub(r"[!#$%&'()*+,-./:：，。？！；‘’、《》;<=>?@[\]^_`{|}~\s]", '', data)
-        i, ls, length = 0, [], len(data)
-        while i + 1 < length:
-            width = self.max_address if length - i > self.max_address else (length - i)  # 补差位数
-            for j in range(2, width + 1):  # 精准匹配
-                n = data[i:i + j]
-                value = self._bisect_right(self.address_data, n, 0, self.length_all)
-                if isinstance(value, tuple):
-                    flag = value[1]
-                    index = data.find(flag, i)
-                    i = index + len(flag)  # 跳过选择后的地址
-                    ls.append(flag)
-                    break
-            else:  # 进行模糊匹配
-                for j in range(2, width + 1):
-                    n = data[i:i + j]
-                    value = self._bisect_right(self.address_data, n, 0, self.length_all)
-                    if isinstance(value, int):
-                        v = self._vague(n)
-                        if v:
-                            index = data.find(v, i)
-                            i = index + len(v)  # 跳过选择后的地址
-                            ls.append(v)
-                            break
-                else:
-                    i += 1
+        ls = []
+        for index, (key, value) in self.ac.iter(data):
+            ls.append(value)
+        ls = self.remove_subset(ls)
         if is_max_address:
             max_address = []
             match = re.sub('|'.join(ls), lambda x: '*' * len(x.group()), data)

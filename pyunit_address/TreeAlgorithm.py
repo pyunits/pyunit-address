@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Time  : 2020/2/18 15:23
 # @Author: Jtyoui@qq.com
+import threading
+from functools import wraps
 
 
 class Tree:
@@ -76,3 +78,19 @@ def dict_create_tree(data: dict, tree: Tree = Tree(value='Root')):
         if isinstance(data, dict):
             dict_create_tree(data[d], t)
     return tree
+
+
+def Singleton(cls):
+    """单例模式"""
+    instance = {}
+    _lock = threading.Lock()  # 实现线程锁，增加安全性
+
+    @wraps(cls)
+    def wrapper(*args, **kwargs):
+        if cls not in instance:
+            with _lock:
+                if cls not in instance:
+                    instance[cls] = cls(*args, **kwargs)
+        return instance[cls]
+
+    return wrapper
