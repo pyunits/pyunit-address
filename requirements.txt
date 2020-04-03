@@ -1,1 +1,2 @@
 pyahocorasick==1.4.0
+pyunit-gof==2020.3.11
