@@ -29,7 +29,8 @@ def test_supplement_address():
     address.add_vague_text('贵州省-遵义市-遵义县-虾子镇-乐安村-乐石台')
     print(address.supplement_address('我家在遵义市乐石台', is_order=True))  # ['贵州省-遵义市-遵义县-虾子镇-乐安村-乐石台']
     print(address.supplement_address('山西孝义'))  # ['山西省-吕梁市-文水县-孝义镇']
-    print(address.supplement_address('我在乐安村'))  # ['贵州省-贵阳市-花溪区']
+    print(address.supplement_address('我在三家镇乐安村'))  # ['海南省-省直辖县级行政区划-东方市-三家镇-乐安村']
+    print(address.supplement_address('我在新舟镇'))  # ['贵州省-遵义市-遵义县-新舟镇']
 
 
 if __name__ == '__main__':
