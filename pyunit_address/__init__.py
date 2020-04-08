@@ -5,6 +5,7 @@
 from .address import Address  # 地址初始化
 from .findAddress import find_address  # 查询地址
 from .supplementAddress import supplement_address  # 补全地址
+from .correctionAddress import correct_address  # 纠错地址
 
 __version__ = '2020.4.6'
 __author__ = 'Jtyoui'

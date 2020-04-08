@@ -5,7 +5,7 @@
 # @interpret： 常用工具
 
 
-def remove_subset(ls: list) -> list:
+def remove_subset(ls) -> list:
     """去除列表中的子集
 
     比如：['aa','a','ab'] --> ['aa','ab']

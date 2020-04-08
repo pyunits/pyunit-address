@@ -10,19 +10,9 @@ address.add_vague_text(['红花岗', '花溪'])
 address.add_vague_text('贵州省-遵义市-遵义县-虾子镇-乐安村-乐石台')
 
 
-def test():
+def find_address_test():
     af = find_address(address, '我家在贵州遵义红花岗区，你家在贵州贵阳花溪区')
     print(af)  # ['贵州遵义红花岗区', '贵州贵阳花溪区']
-
-
-def test_add():
-    af = find_address(address, '我家在贵州遵义红花岗区，你家在贵州贵阳花溪')
-    print(af)  # ['贵州遵义红花岗区', '贵州贵阳花溪']
-
-
-def test_delete():
-    af = find_address(address, '贵州省贵阳市花溪区瑞华社区服务中心万科，你家在贵州贵阳花溪区')
-    print(af)  # ['贵州省贵阳市花溪区瑞华社区', '贵州贵阳花溪区']
 
 
 def test_supplement_address():
@@ -32,10 +22,25 @@ def test_supplement_address():
     print(supplement_address(address, '我在新舟镇'))  # ['贵州省-遵义市-遵义县-新舟镇']
 
 
+def correct_address_test():
+    print(correct_address(address, '贵州省遵义市花溪区'))  # 贵州省-贵阳市-花溪区
+
+
+def all_test():
+    string_ = '我家在红花岗，你家在贵州贵阳花溪区,他家在贵州省遵义市花溪区'
+    finds = find_address(address, string_)
+    for find in finds:
+        print()
+        print('地址', find)
+        print('补全地址', supplement_address(address, find))
+        print('纠错地址', correct_address(address, find))
+        print('--------------------------')
+
+
 if __name__ == '__main__':
     start = time.time()
-    test()
-    test_add()
-    test_delete()
+    find_address_test()
     test_supplement_address()
+    correct_address_test()
+    all_test()
     print(time.time() - start)

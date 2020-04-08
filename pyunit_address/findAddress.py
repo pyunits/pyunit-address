@@ -20,7 +20,7 @@ def find_address(cls, data: str, is_max_address=True, ignore_special_characters=
     ls = cls.max_match_cut(data)
     if is_max_address:
         max_address = []
-        match = re.sub('|'.join(ls), lambda x: '*' * len(x.group()), data)
+        match = re.sub('|'.join(sorted(ls, key=lambda x: len(x), reverse=True)), lambda x: '*' * len(x.group()), data)
         for addr in re.finditer(r'[*]+', match):
             max_address.append(data[addr.start():addr.end()])
         return max_address

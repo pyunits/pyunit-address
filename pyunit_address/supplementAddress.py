@@ -4,6 +4,7 @@
 # @Author: Jtyoui@qq.com
 # @interpret: 自动补全地址
 from .tool import remove_subset
+from collections.abc import Iterable
 
 
 def satisfy_filter(finds_address, is_order):
@@ -14,7 +15,7 @@ def satisfy_filter(finds_address, is_order):
     算法流程：满足每一个地址提取的实体
     """
 
-    def _(x):
+    def inner(x):
         order = []
         for address in finds_address:
             if address not in x:
@@ -26,7 +27,7 @@ def satisfy_filter(finds_address, is_order):
                 return True if order == list(sorted(order)) else False
             return True
 
-    return _
+    return inner
 
 
 def search(cls, link: str = '-') -> str:
@@ -41,6 +42,26 @@ def search(cls, link: str = '-') -> str:
         n.append(cls.value)
         cls = cls.parent
     return link.join(reversed(n))
+
+
+def key_to_address(cls, keys):
+    """根据关键字获取地址
+
+    :param cls: Address类对象
+    :param keys: 关键字
+    :return: 返回关键字对应的地址
+    """
+    all_ = []
+    if isinstance(keys, str):
+        objs = cls.ac.get(keys)
+        address = [search(obj) for obj in objs]
+        return address
+    elif isinstance(keys, Iterable):
+        for key in keys:
+            objs = cls.ac.get(key)
+            address = [search(obj) for obj in objs]
+            all_.extend(address)
+    return all_
 
 
 def supplement_address(cls, address_name, is_max_address=None, is_order=False, link: str = '-') -> list:
@@ -60,13 +81,9 @@ def supplement_address(cls, address_name, is_max_address=None, is_order=False, l
     :param is_order: 地址补全，是否遵守顺序。默认是：无序
     :param link: 补全路径的拼接符，默认是：-
     """
-    ls = []
     keys = cls.max_match_cut(address_name)
-    for key in keys:
-        objs = cls.ac.get(key)
-        address = [search(obj) for obj in objs]
-        ls.extend(address)
-    match = list(filter(satisfy_filter(keys, is_order), ls))
+    all_ = key_to_address(cls, keys)
+    match = filter(satisfy_filter(keys, is_order), all_)  # 根据过滤算法来去掉不是关键字的地址
     ls = remove_subset(match)
     if is_max_address is True:
         return [max(ls, key=lambda x: len(x))]

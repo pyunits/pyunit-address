@@ -11,6 +11,49 @@
     该算法有两个词库，一个是全国五级地址，统计时间是2019年。这个地址库是默认加载。不能删除也不能替换。
     如果需要提取非规则的地址，则实用深度模型：  https://github.com/PyUnit/pyunit-ner
     建议两者一起使用，互相补足。
+    
+## 测试
+```python
+from pyunit_address import *
+import time
+
+address = Address(is_max_address=True)
+address.add_vague_text(['红花岗', '花溪']) # 加入地址名称
+address.add_vague_text('贵州省-遵义市-遵义县-虾子镇-乐安村-乐石台') # 加入一串有顺序的地址
+address.add_vague_text('自定义词库.txt')  # 加载词库文件,词库文件中的每一行，可以是一串顺序地址，也可以是一个地址
+
+def all_test():
+    string_ = '我家在红花岗，你家在贵州贵阳花溪区,他家在贵州省遵义市花溪区'
+    finds = find_address(address, string_)
+    for find in finds:
+        print()
+        print('地址', find)
+        print('补全地址', supplement_address(address, find))
+        print('纠错地址', correct_address(address, find))
+        print('--------------------------')
+
+# 地址 红花岗
+# 补全地址 ['贵州省-遵义市-红花岗区']
+# 纠错地址 贵州省-遵义市-红花岗区
+# --------------------------
+# 
+# 地址 贵州贵阳花溪区
+# 补全地址 ['贵州省-贵阳市-花溪区']
+# 纠错地址 贵州省-贵阳市-花溪区
+# --------------------------
+# 
+# 地址 贵州省遵义市花溪区            注：这个地址是错误的
+# 补全地址 []                      注：错误的地址无法补全
+# 纠错地址 贵州省-贵阳市-花溪区      注：错误的地址被纠正为对的地址
+# --------------------------
+
+
+if __name__ == '__main__':
+    start = time.time()
+    all_test()
+    print(time.time() - start)  # 0.0002001047134399414秒
+
+```
 
 ## 查询地址
 ```python
@@ -24,7 +67,7 @@ def test():
     address.add_vague_text('贵州省-遵义市-遵义县-虾子镇-乐安村') # 添加补全地址
     address.add_vague_text(['花溪', '贵州省-遵义市-遵义县-虾子镇-乐安村'])  # 加载词库列表，替换默认词库
     address.add_vague_text('自定义词库.txt')  # 加载词库文件，替换默认词库
-    af = find_address(address,'我家在贵州遵义红花岗区，你家在贵州贵阳花溪区')
+    af = find_address(address,'我家在贵州遵义红花岗区')
     print(af)
 
 if __name__ == '__main__':
@@ -42,7 +85,18 @@ def test_supplement_address():
 
 if __name__ == '__main__':
     test_supplement_address()
+```
 
+### 自动纠错地址
+```python
+from pyunit_address import Address,correct_address
+
+def correct_address_test():
+    address = Address(is_max_address=True)
+    print(correct_address(address, '贵州省遵义市花溪区'))  # 贵州省-贵阳市-花溪区
+
+if __name__ == '__main__':
+    correct_address_test()
 ```
 
 ## TODO
@@ -52,10 +106,8 @@ if __name__ == '__main__':
 - [x] 不支持非规则地址
 - [x] 支持地址自动补全
 - [x] 支持快速高效搜索
+- [x] 支持纠错地址
 
-
-## 预计功能
-    下次更新自动纠错地址功能
 
 ***
 [1]: https://blog.jtyoui.com

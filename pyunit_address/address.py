@@ -37,17 +37,20 @@ class Address:
         格式1：删除一个词，传入字符串
 
         格式2：删除一列词，传入列表
+
+        删除不支持一串顺序地址删除：例如：贵州省-贵阳市-遵义市
         """
         if isinstance(words, str):
+            words = words.strip()  # 去除空格
             if os.path.exists(words):
                 with open(words, encoding='UTF-8')as fp:
                     for word in fp:
-                        self.ac.remove_word(word)
+                        self.delete_vague_text(word)
             else:
                 self.ac.remove_word(words)
         elif isinstance(words, Iterable):
             for word in words:
-                self.ac.remove_word(word)
+                self.delete_vague_text(word)
 
     def add_vague_text(self, words: [str, Iterable], separators='-'):
         """增加地址词语
@@ -66,6 +69,7 @@ class Address:
         :param separators: 地址分割符，比如：贵州省-遵义市-遵义县-虾子镇-乐安村-乐石台、分割符是：-
         """
         if isinstance(words, str):
+            words = words.strip()  # 去除空格
             if os.path.exists(words):  # 判断是否存在该文件
                 with open(words, encoding='UTF-8')as fp:
                     for word in fp:
