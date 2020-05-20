@@ -17,15 +17,25 @@ address = Address()
 def flask_content_type(requests):
     """根据不同的content_type来解析数据"""
     if requests.method == 'POST':
-        if 'application/x-www-form-urlencoded' in requests.content_type:
+        if 'application/x-www-form-urlencoded' == requests.content_type:
             data = requests.form
-        elif 'application/json' in requests.content_type:
-            data = requests.json
         else:  # 无法被解析出来的数据
-            data = json.loads(requests.data)
-        return data
+            raise Exception('POST的Content-Type必须是:application/x-www-form-urlencoded')
     elif requests.method == 'GET':
-        return requests.args
+        data = requests.args
+    else:
+        raise Exception('只支持GET和POST请求')
+    data = dict(data)
+    is_max_address = data.get('is_max_address', None)
+    if is_max_address and is_max_address.lower() == 'false':
+        data['is_max_address'] = False
+    is_order = data.get('is_order', None)
+    if is_order and is_order.lower() == 'false':
+        data['is_order'] = False
+    ignore_special_characters = data.get('ignore_special_characters', None)
+    if ignore_special_characters and ignore_special_characters.lower() == 'false':
+        data['ignore_special_characters'] = False
+    return data
 
 
 @app.route('/')
@@ -99,3 +109,7 @@ def delete():
             return jsonify(code=400, result='data not is list,del not success')
     except Exception as e:
         return jsonify(code=500, error=str(e))
+
+
+if __name__ == '__main__':
+    app.run(port=2312)

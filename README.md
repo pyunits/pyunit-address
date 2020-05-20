@@ -99,6 +99,152 @@ if __name__ == '__main__':
     correct_address_test()
 ```
 
+## Docker部署
+    docker pull jtyoui/pyunit-address
+    docker run -d -p 2312:5000 pyunit-time
+
+### 寻找地址的请求参数
+|**参数名**|**类型**|**是否可以为空**|**说明**|
+|------|------|-------|--------|
+|data|string|YES|输入一句带有地址的句子|
+|is_max_address|bool|No|是否开启最大粒度寻词|
+|ignore_special_characters|bool|NO|是否开启过滤特殊符号|
+
+### 请求示例
+> #### Python3 Requests测试
+```python
+import requests
+
+url = "http://127.0.0.1:2312/pyunit/address/find_address"
+data = {
+    'data': '我在贵州贵阳观山湖公园',
+    'is_max_address': False,
+    'ignore_special_characters': True
+}
+headers = {'Content-Type': "application/x-www-form-urlencoded"}
+response = requests.post(url, data=data, headers=headers).json()
+print(response)
+``` 
+
+> #### 返回结果
+```json
+{
+	"code": 200,
+	"result": ["贵州", "贵阳", "观山湖"]
+}
+```
+
+### 自动补全请求参数
+|**参数名**|**类型**|**是否可以为空**|**说明**|
+|------|------|-------|--------|
+|data|string|YES|输入一句带有地址的句子|
+|is_max_address|bool|No|是否开启最大粒度寻词|
+|is_order|bool|NO|是否开启排序功能|
+
+### 请求示例
+> #### Python3 Requests测试
+```python
+import requests
+
+url = "http://127.0.0.1:2312/pyunit/address/supplement_address"
+data = {
+    'data': '我在贵州贵阳观山湖',
+    'is_max_address': True,
+    'is_order': True
+}
+headers = {'Content-Type': "application/x-www-form-urlencoded"}
+response = requests.post(url, data=data, headers=headers).json()
+print(response)
+``` 
+
+> #### 返回结果
+```json
+{
+	"code": 200,
+	"result": ["贵州省-贵阳市-观山湖区"]
+}
+```
+
+### 自动纠错请求参数
+|**参数名**|**类型**|**是否可以为空**|**说明**|
+|------|------|-------|--------|
+|data|string|YES|输入一句带有地址的句子|
+
+### 请求示例
+> #### Python3 Requests测试
+```python
+import requests
+
+url = "http://127.0.0.1:2312/pyunit/address/correct_address"
+data = {
+    'data': '我在贵州遵义观山湖'   # 遵义下面没有观山湖区,贵州下的观山湖区只有贵阳有,如果有多个则返回list
+}
+headers = {'Content-Type': "application/x-www-form-urlencoded"}
+response = requests.post(url, data=data, headers=headers).json()
+print(response)
+
+``` 
+
+> #### 返回结果
+```json
+{
+	"code": 200,
+	"result": ["贵州省-贵阳市-观山湖区"]
+}
+```
+
+### 增加地址词库请求参数
+|**参数名**|**类型**|**是否可以为空**|**说明**|
+|------|------|-------|--------|
+|data|string|YES|输入一句带有地址的句子|
+|separators|string|NO|分割词语的分隔符|
+
+### 请求示例
+> #### Python3 Requests测试
+```python
+import json
+import requests
+
+url = "http://127.0.0.1:2312/pyunit/address/add"
+data = {
+    'data': json.dumps(['贵州省-贵阳市-观山湖区-观山湖公园', '金融大街', '小吃城']),
+    'separators': '-'
+}
+headers = {'Content-Type': "application/x-www-form-urlencoded"}
+response = requests.post(url, data=data, headers=headers).json()
+print(response)
+``` 
+
+### 删除地址词库请求参数
+|**参数名**|**类型**|**是否可以为空**|**说明**|
+|------|------|-------|--------|
+|data|string|YES|输入一句带有地址的句子|
+
+### 请求示例
+> #### Python3 Requests测试
+```python
+import json
+
+import requests
+
+url = "http://127.0.0.1:2312/pyunit/address/del"
+data = {
+    'data': json.dumps(['金融大街', '小吃城']),
+}
+headers = {'Content-Type': "application/x-www-form-urlencoded"}
+response = requests.post(url, data=data, headers=headers).json()
+print(response)
+``` 
+
+> #### 返回结果
+```json
+{
+	"code": 200,
+	"result": "del success"
+}
+```
+
+
 ## TODO
 - [x] 自动寻找最长地址长度
 - [x] 全国五级地址新词库
