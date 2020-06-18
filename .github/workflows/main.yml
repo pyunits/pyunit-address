@@ -3,9 +3,9 @@ name: address
 on:
   push:
     branches:
-      - master
-      paths:
-        - pyunit_address/*
+    - master
+    paths:
+    - pyunit_address/*
 
 jobs:
   deploy:
