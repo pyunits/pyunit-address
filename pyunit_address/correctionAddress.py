@@ -38,5 +38,7 @@ def correct_address(cls, sentence):
     keys = cls.max_match_cut(sentence)
     all_ = key_to_address(cls, keys)
     filter_address = list(sorted(all_, key=max_key_filter(keys), reverse=True))
-    max_address = max(filter_address, key=lambda x: len(x))
-    return max_address
+    if filter_address:
+        max_address = max(filter_address, key=lambda x: len(x))
+        return max_address
+    return filter_address

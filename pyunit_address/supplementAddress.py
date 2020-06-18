@@ -3,8 +3,9 @@
 # @Time  : 2020/4/6 12:36
 # @Author: Jtyoui@qq.com
 # @interpret: 自动补全地址
-from .tool import remove_subset
 from collections.abc import Iterable
+
+from .tool import remove_subset
 
 
 def satisfy_filter(finds_address, is_order):
@@ -85,8 +86,9 @@ def supplement_address(cls, address_name, is_max_address=None, is_order=False, l
     all_ = key_to_address(cls, keys)
     match = filter(satisfy_filter(keys, is_order), all_)  # 根据过滤算法来去掉不是关键字的地址
     ls = remove_subset(match)
-    if is_max_address is True:
-        return [max(ls, key=lambda x: len(x))]
-    elif is_max_address is False:
-        return [min(ls, key=lambda x: len(x))]
+    if ls:
+        if is_max_address is True:
+            return [max(ls, key=lambda x: len(x))]
+        elif is_max_address is False:
+            return [min(ls, key=lambda x: len(x))]
     return ls

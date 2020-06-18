@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 # @Time  : 2020/2/18 15:23
 # @Author: Jtyoui@qq.com
-from pyunit_address import *
 import time
+
+from pyunit_address import *
 
 address = Address(is_max_address=True)
 address.add_vague_text(['红花岗', '花溪'])
