@@ -7,7 +7,7 @@ from .findAddress import find_address  # 查询地址
 from .supplementAddress import supplement_address  # 补全地址
 from .correctionAddress import correct_address  # 纠错地址
 
-__version__ = '2020.6.18'
+__version__ = '2020.6.19'
 __author__ = 'Jtyoui'
 __description__ = '全国五级地址查询'
 __email__ = 'jtyoui@qq.com'

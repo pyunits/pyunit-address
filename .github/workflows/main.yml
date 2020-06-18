@@ -8,7 +8,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@master
+      - name: 下载代码
+        uses: actions/checkout@master
 
       - name: 下载Python环境
         uses: actions/setup-python@master
@@ -20,7 +21,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install setuptools wheel twine
 
-      - name: 构建Python包
+      - name: 构建Python包并上传到PYPI
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
@@ -28,3 +29,13 @@ jobs:
           pip install -r requirements.txt
           python setup.py sdist bdist_wheel
           twine upload dist/*
+
+      - name: 构建Docker并上传到DockerHub
+        uses: docker/build-push-action@v1.1.0
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: jtyoui/pyunit-address
+          tags: 2.0
+          tag_with_ref: true
+          tag_with_sha: true
