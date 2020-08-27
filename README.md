@@ -101,7 +101,7 @@ if __name__ == '__main__':
 
 ## Docker部署
     docker pull jtyoui/pyunit-address
-    docker run -d -p 2312:5000 pyunit-time
+    docker run -d -P pyunit-time
 
 ### 寻找地址的请求参数
 |**参数名**|**类型**|**是否可以为空**|**说明**|
@@ -115,7 +115,7 @@ if __name__ == '__main__':
 ```python
 import requests
 
-url = "http://127.0.0.1:2312/pyunit/address/find_address"
+url = "http://127.0.0.1:2312/pyunit/address/find"
 data = {
     'data': '我在贵州贵阳观山湖公园',
     'is_max_address': False,
@@ -129,67 +129,19 @@ print(response)
 > #### 返回结果
 ```json
 {
-	"code": 200,
-	"result": ["贵州", "贵阳", "观山湖"]
-}
-```
-
-### 自动补全请求参数
-|**参数名**|**类型**|**是否可以为空**|**说明**|
-|------|------|-------|--------|
-|data|string|YES|输入一句带有地址的句子|
-|is_max_address|bool|No|是否开启最大粒度寻词|
-|is_order|bool|NO|是否开启排序功能|
-
-### 请求示例
-> #### Python3 Requests测试
-```python
-import requests
-
-url = "http://127.0.0.1:2312/pyunit/address/supplement_address"
-data = {
-    'data': '我在贵州贵阳观山湖',
-    'is_max_address': True,
-    'is_order': True
-}
-headers = {'Content-Type': "application/x-www-form-urlencoded"}
-response = requests.post(url, data=data, headers=headers).json()
-print(response)
-``` 
-
-> #### 返回结果
-```json
-{
-	"code": 200,
-	"result": ["贵州省-贵阳市-观山湖区"]
-}
-```
-
-### 自动纠错请求参数
-|**参数名**|**类型**|**是否可以为空**|**说明**|
-|------|------|-------|--------|
-|data|string|YES|输入一句带有地址的句子|
-
-### 请求示例
-> #### Python3 Requests测试
-```python
-import requests
-
-url = "http://127.0.0.1:2312/pyunit/address/correct_address"
-data = {
-    'data': '我在贵州遵义观山湖'   # 遵义下面没有观山湖区,贵州下的观山湖区只有贵阳有,如果有多个则返回list
-}
-headers = {'Content-Type': "application/x-www-form-urlencoded"}
-response = requests.post(url, data=data, headers=headers).json()
-print(response)
-
-``` 
-
-> #### 返回结果
-```json
-{
-	"code": 200,
-	"result": ["贵州省-贵阳市-观山湖区"]
+    "code": 200,
+    "result": [
+        {
+            "address": "龙里",
+            "correct_address": "贵州省-黔南布依族苗族自治州-龙里县",
+            "supplement_address": [
+                {
+                    "key": "贵州省-黔南布依族苗族自治州-龙里县"
+                }
+            ],
+            "type": "区县"
+        }
+    ]
 }
 ```
 

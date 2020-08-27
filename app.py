@@ -7,35 +7,11 @@ import json
 
 from flask import Flask, jsonify, request
 
-from pyunit_address import Address, find_address, supplement_address, correct_address
+from pyunit_address import *
 
 app = Flask(__name__)
 
 address = Address()
-
-
-def flask_content_type(requests):
-    """根据不同的content_type来解析数据"""
-    if requests.method == 'POST':
-        if 'application/x-www-form-urlencoded' == requests.content_type:
-            data = requests.form
-        else:  # 无法被解析出来的数据
-            raise Exception('POST的Content-Type必须是:application/x-www-form-urlencoded')
-    elif requests.method == 'GET':
-        data = requests.args
-    else:
-        raise Exception('只支持GET和POST请求')
-    data = dict(data)
-    is_max_address = data.get('is_max_address', None)
-    if is_max_address and is_max_address.lower() == 'false':
-        data['is_max_address'] = False
-    is_order = data.get('is_order', None)
-    if is_order and is_order.lower() == 'false':
-        data['is_order'] = False
-    ignore_special_characters = data.get('ignore_special_characters', None)
-    if ignore_special_characters and ignore_special_characters.lower() == 'false':
-        data['ignore_special_characters'] = False
-    return data
 
 
 @app.route('/')
@@ -43,39 +19,20 @@ def hello():
     return jsonify(code=200, result='welcome to pyunit-address')
 
 
-@app.route('/pyunit/address/supplement_address', methods=['POST', 'GET'])
-def supplement():
-    try:
-        data = flask_content_type(request)
-        word = data['data']
-        is_max_address = data.get('is_max_address', True)
-        is_order = data.get('is_order', False)
-        find = supplement_address(address, word, is_max_address, is_order)
-        return jsonify(code=200, result=find)
-    except Exception as e:
-        return jsonify(code=500, error=str(e))
-
-
-@app.route('/pyunit/address/find_address', methods=['POST', 'GET'])
-def finds():
-    try:
-        data = flask_content_type(request)
-        word = data['data']
-        is_max_address = data.get('is_max_address', True)
-        ignore_special_characters = data.get('ignore_special_characters', True)
-        find = find_address(address, word, is_max_address, ignore_special_characters)
-        return jsonify(code=200, result=find)
-    except Exception as e:
-        return jsonify(code=500, error=str(e))
-
-
-@app.route('/pyunit/address/correct_address', methods=['POST', 'GET'])
+@app.route('/pyunit/address/find', methods=['POST', 'GET'])
 def correct():
     try:
         data = flask_content_type(request)
         word = data['data']
-        find = correct_address(address, word)
-        return jsonify(code=200, result=find)
+        finds = find_address(address, word)
+        result = []
+        for find in finds:
+            sa = supplement_address(address, find)
+            ca = correct_address(address, find)
+            s = [{'key': i} for i in sa]
+            types = get_address_type(ca)
+            result.append({'address': find, 'supplement_address': s, 'correct_address': ca, 'type': types})
+        return jsonify(code=200, result=result)
     except Exception as e:
         return jsonify(code=500, error=str(e))
 
