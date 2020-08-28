@@ -3,7 +3,7 @@
 # @Time  : 2020/2/18 15:23
 # @Author: Jtyoui@qq.com
 from .address import Address  # 地址初始化
-from .addressType import get_address_type  # 得到地址类型
+from .addressType import AddressType  # 得到地址类型
 from .correctionAddress import correct_address  # 纠错地址
 from .findAddress import find_address  # 查询地址
 from .supplementAddress import supplement_address  # 补全地址

@@ -6,12 +6,12 @@
 import json
 
 from flask import Flask, jsonify, request
+from pyaxe_flask import flask_request
 
-from pyunit_address import *
+from pyunit_address import AddressType
 
 app = Flask(__name__)
-
-address = Address()
+address = AddressType()
 
 
 @app.route('/')
@@ -22,16 +22,9 @@ def hello():
 @app.route('/pyunit/address/find', methods=['POST', 'GET'])
 def correct():
     try:
-        data = flask_content_type(request)
+        data = flask_request(request)
         word = data['data']
-        finds = find_address(address, word)
-        result = []
-        for find in finds:
-            sa = supplement_address(address, find)
-            ca = correct_address(address, find)
-            s = [{'key': i} for i in sa]
-            types = get_address_type(ca)
-            result.append({'address': find, 'supplement_address': s, 'correct_address': ca, 'type': types})
+        result = address.address_message(word)
         return jsonify(code=200, result=result)
     except Exception as e:
         return jsonify(code=500, error=str(e))
@@ -40,7 +33,7 @@ def correct():
 @app.route('/pyunit/address/add', methods=['POST', 'GET'])
 def adds():
     try:
-        data = flask_content_type(request)
+        data = flask_request(request)
         word = data['data']
         words = json.loads(word)
         if isinstance(words, list):
@@ -56,7 +49,7 @@ def adds():
 @app.route('/pyunit/address/del', methods=['POST', 'GET'])
 def delete():
     try:
-        data = flask_content_type(request)
+        data = flask_request(request)
         word = data['data']
         words = json.loads(word)
         if isinstance(words, list):
