@@ -1,9 +1,6 @@
 name: ADDRESS
 
-on:
-  push:
-    paths:
-      - '__init__.py'
+on: push
 
 jobs:
   deploy:
