@@ -24,7 +24,7 @@ def test_supplement_address():
 
 
 def correct_address_test():
-    print(correct_address(address, '贵州省遵义市花溪区'))  # 贵州省-贵阳市-花溪区
+    print(correct_address(address, '贵州省遵义市花溪区', False))  # ['贵州省-遵义市', '贵州省-贵阳市-花溪区'],未开启最长地址
 
 
 def all_test():

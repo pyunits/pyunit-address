@@ -87,7 +87,7 @@ if __name__ == '__main__':
     test_supplement_address()
 ```
 
-### 自动纠错地址
+### 自动纠正地址
 ```python
 from pyunit_address import Address,correct_address
 
