@@ -117,7 +117,7 @@ import requests
 
 url = "http://127.0.0.1:2312/pyunit/address/find"
 data = {
-    'data': '我在贵州贵阳观山湖公园',
+    'data': '我家在贵州龙里',
     'is_max_address': False,
     'ignore_special_characters': True
 }
