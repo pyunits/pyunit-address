@@ -1,2 +1,1 @@
-pyahocorasick==1.4.0
-pyaxe-flask==2020.8.19
+pyahocorasick==1.4.1
