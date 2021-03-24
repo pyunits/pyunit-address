@@ -4,6 +4,22 @@
 # @Author: Jtyoui@qq.com
 # @interpret: 自动寻找地址
 import re
+from .tool import remove_subset
+
+
+def checkout_re_address(address, text):
+    """检验是否是有效地址
+    检验： xx省xx市xx组团x栋|xx（号）楼xx层|x座
+    xx的有效数字不超过5位数
+    """
+    compiles = re.search(rf'{address}(\w+?)([a-zA-Z\d]+组团|[栋楼层座])', text, flags=re.S)
+    if compiles:
+        addr = compiles.group(1)
+        if '的' not in addr:
+            return compiles.group()
+    else:
+        compiles = re.search(rf'{address}(\w+?)\d+号)', text, flags=re.S)
+    return False
 
 
 def find_address(cls, data: str, is_max_address=True, ignore_special_characters=True) -> list:
@@ -22,6 +38,9 @@ def find_address(cls, data: str, is_max_address=True, ignore_special_characters=
         max_address = []
         match = re.sub('|'.join(sorted(ls, key=lambda x: len(x), reverse=True)), lambda x: '*' * len(x.group()), data)
         for addr in re.finditer(r'[*]+', match):
-            max_address.append(data[addr.start():addr.end()])
-        return max_address
+            address = data[addr.start():addr.end()]
+            address = checkout_re_address(address, data)
+            if address:
+                max_address.append(address)
+        return remove_subset(max_address) if max_address else []
     return ls

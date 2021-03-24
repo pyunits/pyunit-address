@@ -83,6 +83,21 @@ class Address:
             for word in words:
                 self.add_vague_text(word, separators)
 
+    def recursion_load(self, root, address):
+        """递归加载数据中的地址"""
+        if isinstance(address, list):
+            for addr in address:
+                reset = reset_key(addr)
+                tree = MultiTree(value=reset, parent=root)
+                root.add_children(tree)
+                self.flag_ac_contain_key(reset, root)
+        else:
+            for value, parent in address.items():
+                tree = MultiTree(value=value, parent=root)
+                root.add_children(tree)
+                self.flag_ac_contain_key(value, tree)
+                self.recursion_load(tree, parent)
+
     def _unzip(self) -> (list, dict):
         """解压地址数据包"""
         name = 'address'
@@ -90,28 +105,7 @@ class Address:
         lines = bz.read().decode('utf-8')
         address = json.loads(lines[512:-1134], encoding='utf8')
         root = MultiTree(value='中国', parent=None)
-        for one_k, one_v in address.items():
-            one = MultiTree(value=one_k, parent=root)
-            root.add_children(one)
-            self.flag_ac_contain_key(one_k, one)
-            for two_k, two_v in one_v.items():
-                two = MultiTree(value=two_k, parent=one)
-                one.add_children(two)
-                self.flag_ac_contain_key(two_k, two)
-                for three_k, three_v in two_v.items():
-                    three = MultiTree(value=three_k, parent=two)
-                    two.add_children(three)
-                    self.flag_ac_contain_key(three_k, three)
-                    for four_k, four_v in three_v.items():
-                        four_k = reset_key(four_k)
-                        four = MultiTree(value=four_k, parent=three)
-                        three.add_children(four)
-                        self.flag_ac_contain_key(four_k, four)
-                        for five_k in four_v:
-                            five_k = reset_key(five_k)
-                            five = MultiTree(value=five_k, parent=four)
-                            four.add_children(five)
-                            self.flag_ac_contain_key(five_k, five)
+        self.recursion_load(root, address)
         return root
 
     def max_match_cut(self, sentence):
