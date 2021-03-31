@@ -18,7 +18,8 @@ def checkout_re_address(address, text):
         if '的' not in addr:
             return compiles.group()
     else:
-        compiles = re.search(rf'{address}(\w+?)\d+号)', text, flags=re.S)
+        compiles = re.search(rf'{address}(\w+?)\d+号', text, flags=re.S)
+        return compiles.group() if compiles else False
     return False
 
 
